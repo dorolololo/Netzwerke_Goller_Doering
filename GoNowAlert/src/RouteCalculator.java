@@ -20,42 +20,41 @@ public class RouteCalculator {
 
         long actualTime = System.currentTimeMillis();
         long timeToLeave = 5 * 60;
-        String arrivalTimeString = "";
-        long arrivalTime = actualTime + 60*3;
-
-
-        // todo Eingabe einlesen..
+        String arrivalTimeString = args[0];
+        long arrivalTime = actualTime + 60 * 3;
 
         //final int timeInt = Integer.parseInt(time);
-        // todo String selber bauen
 
         // get input
 
         String inputString = "";
-        boolean readingTime = true;
+        String[] destinations = new String[3];
 
-        for (int i = 0; i < args.length; i++) {
-            String input = args[i].replace(" ","");
-            if (readingTime) {
-                if (input.contains("|"))
-                    readingTime = false;
-                else
-                    arrivalTimeString += input;
-            } else {
 
-                inputString += input + " ";
+        for (int i = 1; i < args.length; i++) {
+            destinations[i - 1] = args[i];
+        }
+
+
+        // create URL
+        UrlCreator urlCreator = new UrlCreator();
+        String generatedUrl = "https://maps.googleapis.com/maps/api/directions/json?origin=" + home + "&destination=";
+        generatedUrl += urlCreator.convert(args[1]);
+        if(args.length > 2){
+            generatedUrl += "&waypoints=optimize:true";
+            for( int i = 2; i < args.length; i++){
+                generatedUrl +=  "|" + urlCreator.convert(args[i]);
             }
         }
 
-        // create URL
 
+        System.out.println(generatedUrl);
 
-
-        String urlstring = "https://maps.googleapis.com/maps/api/directions/json?origin=Lothstraße+34,München&destination=Zieblandstraße,München&waypoints=optimize:true|Herzogstraße+34,München|stachus,München";
+        //String urlstring = "https://maps.googleapis.com/maps/api/directions/json?origin=Lothstraße+34,München&destination=Zieblandstraße,München&waypoints=optimize:true|Herzogstraße+34,München|stachus,München";
 
 
         try (
-                InputStream in = new URL(urlstring).openStream();
+                InputStream in = new URL(generatedUrl).openStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         )
 
@@ -68,6 +67,8 @@ public class RouteCalculator {
                 response += line + "\r\n";
                 line = reader.readLine();
             }
+
+            // todo Antword des Servers auf korrektheit prüfen - wenn Eingabe nicht stimmt, dann an Nutzer weiterleiten
 
             // parse json
             Gson gson = new Gson();
